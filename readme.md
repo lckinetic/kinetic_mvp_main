@@ -158,6 +158,7 @@ source .venv/bin/activate
 # start postgresql
 brew services start postgresql@15
 brew services restart postgresql@15
+psql -h 127.0.0.1 -p 5432 -U kinetic -d kinetic
 
 \dt
 \q
