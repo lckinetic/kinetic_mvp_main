@@ -1,0 +1,6 @@
+pyproject.toml
+kinetic_mvp_backend.egg-info/PKG-INFO
+kinetic_mvp_backend.egg-info/SOURCES.txt
+kinetic_mvp_backend.egg-info/dependency_links.txt
+kinetic_mvp_backend.egg-info/requires.txt
+kinetic_mvp_backend.egg-info/top_level.txt

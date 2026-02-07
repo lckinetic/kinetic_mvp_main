@@ -148,3 +148,7 @@ uvicorn app.main:app --reload --port 8000
 > Proof beats elegance.  
 > Working beats perfect.  
 > Deterministic beats clever.
+
+
+## activate environment
+source .venv/bin/activate
