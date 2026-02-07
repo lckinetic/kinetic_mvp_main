@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: kinetic_postgres
+
+    environment:
+      POSTGRES_USER: kinetic
+      POSTGRES_PASSWORD: kinetic
+      POSTGRES_DB: kinetic
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - kinetic_pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kinetic -d kinetic"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  kinetic_pgdata:
