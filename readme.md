@@ -154,3 +154,13 @@ curl http://localhost:8000/health
 
 ## activate environment
 source .venv/bin/activate
+
+# start postgresql
+brew services start postgresql@15
+brew services restart postgresql@15
+
+\dt
+\q
+
+# validating the full startup chain
+env → config → FastAPI → DB engine → tables → API endpoint
