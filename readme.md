@@ -164,3 +164,15 @@ brew services restart postgresql@15
 
 # validating the full startup chain
 env → config → FastAPI → DB engine → tables → API endpoint
+
+# Swagger UI
+http://127.0.0.1:8000/docs
+
+# Health check
+http://127.0.0.1:8000/health
+
+# Onramp
+http://127.0.0.1:8000/onramp/create
+
+# Onramp
+http://127.0.0.1:8000/onramp/create
