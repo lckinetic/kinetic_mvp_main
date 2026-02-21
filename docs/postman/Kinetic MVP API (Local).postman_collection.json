@@ -1,0 +1,374 @@
+{
+  "info": {
+    "_postman_id": "48e2a2f0-33a2-4023-8b1d-142f4a30da86",
+    "name": "Kinetic MVP API (Local)",
+    "description": "Postman collection for Kinetic MVP local backend: health, onramp, and Banxa webhook tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33092965",
+    "_collection_link": "https://go.postman.co/collection/33092965-48e2a2f0-33a2-4023-8b1d-142f4a30da86?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Onramp - Create Order",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.environment.set('onramp_order_id', body.order_id);",
+              "pm.environment.set('onramp_checkout_url', body.checkout_url || '');",
+              "pm.test('order_id exists', function () {",
+              "  pm.expect(body.order_id).to.be.ok;",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fiat_amount\": 100,\n  \"fiat_currency\": \"GBP\",\n  \"crypto_currency\": \"USDC\",\n  \"wallet_address\": \"0xabc123\",\n  \"blockchain\": \"ethereum\",\n  \"user_email\": \"test@example.com\",\n  \"client_reference\": \"demo-client-ref-001\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/onramp/orders",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "onramp",
+            "orders"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Onramp - Get Order (by order_id)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('order_id matches env', function () {",
+              "  pm.expect(body.order_id).to.eql(pm.environment.get('onramp_order_id'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onramp/orders/{{onramp_order_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "onramp",
+            "orders",
+            "{{onramp_order_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Onramp - Get Order (by client_reference)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('order_id matches env', function () {",
+              "  pm.expect(body.order_id).to.eql(pm.environment.get('onramp_order_id'));",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onramp/orders?client_reference={{client_reference}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "onramp",
+            "orders"
+          ],
+          "query": [
+            {
+              "key": "client_reference",
+              "value": "{{client_reference}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Webhook - Banxa (Update status to completed)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('webhook_idempotency_key')) {",
+              "  pm.environment.set('webhook_idempotency_key', 'demo-update-001');",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.environment.set('last_webhook_status', body.status || '');",
+              "pm.environment.set('last_webhook_idempotency_key', body.idempotency_key || '');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-IDEMPOTENCY-KEY",
+            "value": "{{webhook_idempotency_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event\": \"order_completed\",\n  \"order_id\": \"{{onramp_order_id}}\",\n  \"status\": \"success\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhooks/banxa",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "webhooks",
+            "banxa"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Webhook - Banxa event latest",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('webhook_idempotency_key')) {",
+              "  pm.environment.set('webhook_idempotency_key', 'demo-update-001');",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.environment.set('last_webhook_status', body.status || '');",
+              "pm.environment.set('last_webhook_idempotency_key', body.idempotency_key || '');"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-IDEMPOTENCY-KEY",
+            "value": "{{webhook_idempotency_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event\": \"order_completed\",\n  \"order_id\": \"{{onramp_order_id}}\",\n  \"status\": \"success\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhooks/banxa/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "webhooks",
+            "banxa",
+            "events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Webhook - Banxa (Duplicate resend)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('Duplicate is ignored or received', function () {",
+              "  pm.expect(body.status).to.be.oneOf(['duplicate_ignored','received']);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-IDEMPOTENCY-KEY",
+            "value": "{{webhook_idempotency_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"event\": \"order_completed\",\n  \"order_id\": \"{{onramp_order_id}}\",\n  \"status\": \"completed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/webhooks/banxa",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "webhooks",
+            "banxa"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sanity - Get Order After Webhook",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const body = pm.response.json();",
+              "pm.test('Order status is completed', function () {",
+              "  pm.expect((body.order_status || '').toLowerCase()).to.eql('completed');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/onramp/orders/{{onramp_order_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "onramp",
+            "orders",
+            "{{onramp_order_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    }
+  ]
+}
