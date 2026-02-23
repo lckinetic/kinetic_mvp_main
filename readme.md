@@ -135,6 +135,7 @@ Roles:
 ## 9. How to Run Locally
 
 ```bash
+docker compose -f infra/docker-compose.yml down -v
 docker compose -f infra/docker-compose.yml up -d
 cd backend
 source .venv/bin/activate
