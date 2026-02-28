@@ -24,6 +24,19 @@ from app.domain.catalog import (
     display_name="Treasury Rebalance (Demo)",
     description="Mock flow: Onramp → Complete → Offramp → Complete",
     category="treasury",
+    business_summary="Convert fiat to stablecoins and back again using a pre-defined treasury workflow (demo).",
+    business_steps=[
+        "Buy stablecoins using a fiat onramp",
+        "Confirm completion (provider status update)",
+        "Sell stablecoins back to fiat (offramp)",
+        "Confirm payout completion",
+    ],
+    step_outline=[
+        "onramp.create",
+        "onramp.complete",
+        "offramp.create",
+        "offramp.complete",
+    ],
     input_schema=[
         {
             "name": "fiat_amount",

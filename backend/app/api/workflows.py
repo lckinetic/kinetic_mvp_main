@@ -210,6 +210,9 @@ def get_templates():
             "description": t["description"],
             "category": t["category"],
             "input_schema": t.get("input_schema", []),
+            "business_summary": t.get("business_summary", ""),
+            "business_steps": t.get("business_steps", []),
+            "step_outline": t.get("step_outline", []),
         }
         for t in templates
     ]
@@ -228,6 +231,9 @@ def get_template_details(template_name: str):
         "description": t["description"],
         "category": t["category"],
         "input_schema": t.get("input_schema", []),
+        "business_summary": t.get("business_summary", ""),
+        "business_steps": t.get("business_steps", []),
+        "step_outline": t.get("step_outline", []),
     }
 
 @router.get("/runs/{run_id}/steps")

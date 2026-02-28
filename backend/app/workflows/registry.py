@@ -25,7 +25,7 @@ class InputField(TypedDict, total=False):
     max: float
     step: float
 
-class WorkflowDefinition(TypedDict):
+class WorkflowDefinition(TypedDict, total=False):
     name: str
     display_name: str
     description: str
@@ -33,6 +33,11 @@ class WorkflowDefinition(TypedDict):
     input_schema: list[InputField]
     version: str
     function: WorkflowFn
+
+    # UI / business metadata (optional)
+    business_summary: str
+    business_steps: list[str]
+    step_outline: list[str]
 
 
 WORKFLOW_TEMPLATES: Dict[str, WorkflowDefinition] = {}
@@ -46,6 +51,9 @@ def register(
     category: str,
     version: str = "1.0",
     input_schema: list[InputField] | None = None,
+    business_summary: str = "",
+    business_steps: list[str] | None = None,
+    step_outline: list[str] | None = None,
 ):
     def decorator(fn: WorkflowFn):
         WORKFLOW_TEMPLATES[name] = {
@@ -55,6 +63,9 @@ def register(
             "category": category,
             "input_schema": input_schema or [],
             "version": version,
+            "business_summary": business_summary,
+            "business_steps": business_steps or [],
+            "step_outline": step_outline or [],
             "function": fn,
         }
         return fn
