@@ -169,24 +169,64 @@ function formToInput(formEl) {
 }
 
 function renderStepsTable(steps) {
-  if (!steps || !steps.length) return "<div class='muted'>No steps.</div>";
-  const rows = steps.map(s => `
-    <tr>
-      <td>${s.seq}</td>
-      <td>${escapeHtml(s.step_name)}</td>
-      <td><span class="pill ${s.status==='completed'?'ok':(s.status==='failed'?'bad':'')}">${escapeHtml(s.status)}</span></td>
-      <td>${s.duration_ms ?? ""}</td>
-      <td><code>${escapeHtml(pretty(s.data || {}))}</code></td>
-    </tr>
-  `).join("");
+  if (!steps || steps.length === 0) return "<div class='muted'>No steps yet.</div>";
+
   return `
-    <table>
+    <table class="table">
       <thead>
-        <tr><th>#</th><th>Step</th><th>Status</th><th>ms</th><th>Data</th></tr>
+        <tr>
+          <th style="width:60px;">#</th>
+          <th>Step</th>
+          <th style="width:140px;">Status</th>
+          <th style="width:110px;">Duration</th>
+          <th style="width:90px;">Details</th>
+        </tr>
       </thead>
-      <tbody>${rows}</tbody>
+      <tbody>
+        ${steps.map((s, idx) => {
+          const rowId = `stepDetails_${idx}`;
+          const payload = {
+            data: s.data || {},
+            error: s.error || null,
+            started_at: s.started_at || null,
+            ended_at: s.ended_at || null,
+            duration_ms: s.duration_ms ?? null,
+          };
+
+          return `
+            <tr>
+              <td>${escapeHtml(String(s.seq ?? (idx + 1)))}</td>
+              <td>${escapeHtml(s.step_name || "")}</td>
+              <td><span class="pill ${statusPillClass(s.status)}">${escapeHtml(s.status || "")}</span></td>
+              <td class="muted">${escapeHtml(String(s.duration_ms ?? ""))}${s.duration_ms != null ? " ms" : ""}</td>
+              <td>
+                <button class="btn-sm" onclick="toggleStepDetails('${rowId}')">View</button>
+              </td>
+            </tr>
+            <tr id="${rowId}" style="display:none;">
+              <td colspan="5">
+                <pre class="jsonbox">${escapeHtml(pretty(payload))}</pre>
+              </td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
     </table>
   `;
+}
+
+function toggleStepDetails(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.style.display = (row.style.display === "none") ? "table-row" : "none";
+}
+
+function statusPillClass(status) {
+  const s = (status || "").toLowerCase();
+  if (s === "completed") return "ok";
+  if (s === "failed") return "bad";
+  if (s === "running") return "warn";
+  return "";
 }
 
 function renderStepper(stepOutline, stepLabels, executedSteps) {

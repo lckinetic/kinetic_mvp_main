@@ -18,6 +18,17 @@ from app.domain.catalog import (
 )
 
 
+def _maybe_fail(input_data: Dict[str, Any], step_name: str) -> str | None:
+    """
+    Demo helper: if simulate_failure_step == step_name, return the message to fail with.
+    """
+    target = str(input_data.get("simulate_failure_step", "")).strip()
+    if target and target == step_name:
+        msg = str(input_data.get("simulate_failure_message", "Simulated failure")).strip()
+        return msg or "Simulated failure"
+    return None
+
+
 @register(
     name="treasury_demo",
     version="1.0",
@@ -33,10 +44,10 @@ from app.domain.catalog import (
     ],
     step_outline=["onramp.create", "onramp.complete", "offramp.create", "offramp.complete"],
     step_labels={
-    "onramp.create": "Buy stablecoins (create onramp order)",
-    "onramp.complete": "Confirm purchase completed",
-    "offramp.create": "Sell stablecoins (create offramp order)",
-    "offramp.complete": "Confirm payout completed",
+        "onramp.create": "Buy stablecoins (create onramp order)",
+        "onramp.complete": "Confirm purchase completed",
+        "offramp.create": "Sell stablecoins (create offramp order)",
+        "offramp.complete": "Confirm payout completed",
     },
     input_schema=[
         {
@@ -131,10 +142,27 @@ from app.domain.catalog import (
             "example": "treasury-demo-off-001",
             "help_text": "Optional idempotency key for offramp create.",
         },
+
+        # ✅ Upgrade 2: simulate failures (optional)
+        {
+            "name": "simulate_failure_step",
+            "label": "Simulate failure at step (optional)",
+            "type": "select",
+            "required": False,
+            "default": "",
+            "options": ["", "onramp.create", "onramp.complete", "offramp.create", "offramp.complete"],
+            "help_text": "For demo purposes: forces the workflow to fail at the selected step.",
+        },
+        {
+            "name": "simulate_failure_message",
+            "label": "Failure message (optional)",
+            "type": "string",
+            "required": False,
+            "default": "Simulated failure",
+            "help_text": "Custom message used when simulation is triggered.",
+        },
     ],
 )
-
-
 def treasury_demo(
     *,
     db: Session,
@@ -164,6 +192,11 @@ def treasury_demo(
     # 1) onramp.create
     s = step_start(db=db, run_id=run_id, seq=seq, step_name="onramp.create", data={"client_reference": onramp_ref})
     try:
+        msg = _maybe_fail(input, "onramp.create")
+        if msg:
+            step_fail(db=db, step_id=s.id, error=msg)
+            raise RuntimeError(msg)
+
         onramp_order = create_onramp_order(
             db=db,
             banxa=banxa,
@@ -185,6 +218,11 @@ def treasury_demo(
     # 2) onramp.complete (simulate)
     s = step_start(db=db, run_id=run_id, seq=seq, step_name="onramp.complete", data={"order_id": onramp_order.order_id})
     try:
+        msg = _maybe_fail(input, "onramp.complete")
+        if msg:
+            step_fail(db=db, step_id=s.id, error=msg)
+            raise RuntimeError(msg)
+
         updated = apply_order_status_update(
             db=db,
             provider="banxa",
@@ -202,6 +240,11 @@ def treasury_demo(
     # 3) offramp.create
     s = step_start(db=db, run_id=run_id, seq=seq, step_name="offramp.create", data={"client_reference": offramp_ref})
     try:
+        msg = _maybe_fail(input, "offramp.create")
+        if msg:
+            step_fail(db=db, step_id=s.id, error=msg)
+            raise RuntimeError(msg)
+
         offramp_order = create_offramp_order(
             db=db,
             banxa=banxa,
@@ -222,6 +265,11 @@ def treasury_demo(
     # 4) offramp.complete (simulate)
     s = step_start(db=db, run_id=run_id, seq=seq, step_name="offramp.complete", data={"order_id": offramp_order.order_id})
     try:
+        msg = _maybe_fail(input, "offramp.complete")
+        if msg:
+            step_fail(db=db, step_id=s.id, error=msg)
+            raise RuntimeError(msg)
+
         updated = apply_order_status_update(
             db=db,
             provider="banxa",
